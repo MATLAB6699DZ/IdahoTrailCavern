@@ -1,16 +1,20 @@
-function [r] = BanditBattle(Strength,Dexterity,Hero_Health)
+function [r] = BanditBattle(Char,Hero_Health,Shield_Metal)
 % Fight with bandit
 %define variables and initial plot type
 f2 = figure('Visible','off',...
     'Name','BanditBattle');
 ax = axes('Units','pixels','Position',[35,110,500,300]);
-
+Level=Char(1);
+Vitality=Char(3);
+Strength=Char(4);
+Dexterity=Char(5);
 Hero_Atk_DMG=1+Strength;
-Dodge_Chance=0.75+0.02*Dexterity;
-Sword_Atk_DMG=Hero_Atk_DMG+20*(Strength*0.10+1);
+Bandit_Stun=0;
+Dodge_Chance=0.75+0.03*Dexterity;
+Sword_Atk_DMG=Hero_Atk_DMG+15*(Strength*0.10+1);
 Sheild_Block=randi(10)*.01+0.90;
-Bandit_Health=90+randi(20);
-Bandit_Atk=8+randi(6);
+Bandit_Health=90+randi(20)*Level;
+Bandit_Atk=8+randi(3)*Level;
 turn=1;
 x(turn)=turn;
 Hero(turn)=Hero_Health;
@@ -19,7 +23,7 @@ Bandit(turn)=Bandit_Health;
 stairs(x,Hero, 'LineWidth', 2)
 hold on
 stairs(x1,Bandit)
-ylim([0 110])
+ylim([0 150])
 % Create push button
 btn = uicontrol('Style', 'pushbutton', 'String', 'Attack',...
     'Position', [70 60 50 20],...
@@ -61,12 +65,26 @@ f2.Visible = 'on';
 % For R2014a and earlier: set(f,'Visible','on');
 
     function Attack(~,~)
+        
         if Bandit_Health > 0
             Bandit_Atk=8+randi(6);
         else
             Bandit_Atk=0;
         end
-        Bandit_Health= Bandit_Health - Sword_Atk_DMG;
+        if Bandit_Stun==1
+            Hero_Health=Hero_Health+Bandit_Atk;
+        end
+        if Strength >= 3
+            Critical=rand();
+            if Critical < 0.15
+                Bandit_Health = Bandit_Health - Sword_Atk_DMG*2;
+            else
+                Bandit_Health= Bandit_Health - Sword_Atk_DMG;
+            end
+        else
+            Critical=1;
+            Bandit_Health= Bandit_Health - Sword_Atk_DMG;
+        end
         Hero_Health = Hero_Health - Bandit_Atk;
         turn= turn+1;
         x(turn)=turn;
@@ -78,17 +96,39 @@ f2.Visible = 'on';
         txt1.String = Hero_Health;
         txt3.String = Bandit_Health;
         if Bandit_Health > 50
-            Description.String = "The two of you exhange blows, He doesn't seem too let up";
+            if Critical < 0.15
+                Description.String = "Critical Strike!";
+            else
+                if Bandit_Stun==1
+                    Description.String = 'You strike the stunned bandit!';
+                else
+                    Description.String = "The two of you exhange blows, He doesn't seem too let up";
+                end
+                    
+            end
         elseif (Bandit_Health <= 15) < (Bandit_Health <= 50)
-            Description.String = 'He seems weak!';
+            if Critical < 0.15
+                Description.String = "Critical Strike!";
+            else
+                Description.String = 'He seems weak!';
+            end
         elseif (Bandit_Health <= 0) < (Bandit_Health <= 15)
-            Description.String = 'Th bandit coughs up blood';
+            if Critical < 0.15
+                Description.String = "Critical Strike!";
+            else
+                Description.String = 'Th bandit coughs up blood';
+            end
         else Bandit_Health <= 0;
             Description.String = 'The bandit has died';
-            
-        end
+            end
+        Bandit_Stun=0;
     end
+    
     function Dodge(~,~)
+      if Bandit_Stun==1
+          Description.String = 'You jumped around while the bandit is stunned.';
+          Bandit_Stun=0;
+      else
         if Bandit_Health > 0
             Bandit_Atk=8+randi(6);
         else
@@ -96,14 +136,20 @@ f2.Visible = 'on';
         end
         Dodge_Barrier=rand();
         if Dodge_Barrier < Dodge_Chance
-            Bandit_Health;
-            Hero_Health;
-            Description.String = 'You successfully dodged his slash';
+            if Dexterity >= 3
+                Bandit_Health= Bandit_Health - 0.75*Sword_Atk_DMG;
+                Description.String = 'Dodge Counter! You dodged and slashed him';
+            else
+                Bandit_Health;
+                Hero_Health;
+                Description.String = 'You successfully dodged his slash';
+            end
         else
             Hero_Health= Hero_Health - Bandit_Atk;
             Bandit_Health;
             Description.String = 'You were too late! He lands a blow!';
         end
+      end
         turn= turn+1;
         x(turn)=turn;
         Hero(turn)=Hero_Health;
@@ -112,15 +158,38 @@ f2.Visible = 'on';
         stairs(x,Hero, 'LineWidth', 3)
         stairs(x1,Bandit)
         txt1.String = Hero_Health;
+        txt3.String = Bandit_Health;
+        if Bandit_Health <= 0
+            Description.String = 'The bandit has died';
+        end
+        Bandit_Stun=0;
     end
     function Block(~,~)
-        if Bandit_Health > 0
-            Bandit_Atk=8+randi(6);
+        if Shield_Metal==0
+            if Bandit_Health > 0
+                Bandit_Atk=8+randi(6);
+            else
+                Bandit_Atk=0;
+            end
+            Bandit_Health;
+            Hero_Health= Hero_Health - Bandit_Atk*(1-Sheild_Block);
+            Description.String = 'You reduce the damage taken by blocking';
         else
-            Bandit_Atk=0;
+            if Bandit_Stun==0
+                chance_B=rand();
+                if chance_B <= 0.15
+                    Description.String = 'You tried bashing too early! Leaving yourself open, the bandit dealt you a punishing blow!';
+                    Hero_Health=Hero_Health-20;
+                else
+                Bandit_Health=Bandit_Health-(3+randi(3));
+                Bandit_Stun=1;
+                Description.String = 'You bash the bandit with your shield right as he attacked, stunning him';
+                end
+            else
+                Bandit_Stun=0;
+                Description.String = 'You stand there with your shield raised as he is stunned';
+            end
         end
-        Bandit_Health;
-        Hero_Health= Hero_Health - Bandit_Atk*(1-Sheild_Block);
         turn= turn+1;
         x(turn)=turn;
         Hero(turn)=Hero_Health;
@@ -129,9 +198,15 @@ f2.Visible = 'on';
         stairs(x,Hero, 'LineWidth', 3)
         stairs(x1,Bandit)
         txt1.String = Hero_Health;
-        
+        txt3.String = Bandit_Health;
     end
-
-    waitfor(f2)
+waitfor(f2)
+if Bandit_Health > 0
+    Hero_Health=Hero_Health - 1000;
+end
+if Vitality >= 3
+    r=Hero_Health+10;
+else
     r=Hero_Health;
+end
 end
