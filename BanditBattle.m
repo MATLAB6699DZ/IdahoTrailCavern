@@ -1,8 +1,8 @@
 function [r] = BanditBattle(Char,Hero_Health,Shield_Metal)
 % Fight with bandit
 %define variables and initial plot type
-f2 = figure('Visible','off',...
-    'Name','BanditBattle');
+f2 = figure('Visible','off','Position',[469,325,550,425],...
+    'Name','BanditBattle','MenuBar','none');
 ax = axes('Units','pixels','Position',[35,110,500,300]);
 Level=Char(1);
 Vitality=Char(3);
@@ -57,17 +57,23 @@ txt2 = uicontrol('Style','text',...
 txt3 = uicontrol('Style','text',...
     'Position',[500 65 30 20],...
     'String',Bandit_Health);
-
+PI = figure('Position',[350,275,84,84],...
+    'MenuBar', 'none');
+    PI1 = imread('Player.bmp');
+    PI1 = imresize(PI1,4);
+    imshow(PI1,'Border','tight');
+BI = figure('Position',[1050,675,84,84],...
+    'MenuBar', 'none');
+    BI1 = imread('Bandit_Image.bmp');
+    BI1 = imresize(BI1,4);
+    imshow(BI1,'Border','tight');
 % Make figure visble after adding all components
 f2.Visible = 'on';
-% This code uses dot notation to set properties.
-% Dot notation runs in R2014b and later.
-% For R2014a and earlier: set(f,'Visible','on');
 
     function Attack(~,~)
         
         if Bandit_Health > 0
-            Bandit_Atk=8+randi(6);
+            Bandit_Atk=4+randi(6);
         else
             Bandit_Atk=0;
         end
@@ -85,7 +91,9 @@ f2.Visible = 'on';
             Critical=1;
             Bandit_Health= Bandit_Health - Sword_Atk_DMG;
         end
-        Hero_Health = Hero_Health - Bandit_Atk;
+        if Bandit_Health > 0
+            Hero_Health = Hero_Health - Bandit_Atk;
+        end
         turn= turn+1;
         x(turn)=turn;
         Hero(turn)=Hero_Health;
@@ -201,11 +209,21 @@ f2.Visible = 'on';
         txt3.String = Bandit_Health;
     end
 waitfor(f2)
+if ishandle(PI)
+    close(PI)
+end
+if ishandle(BI)
+    close(BI)
+end
 if Bandit_Health > 0
     Hero_Health=Hero_Health - 1000;
 end
 if Vitality >= 3
-    r=Hero_Health+10;
+    Hero_Health+10;
+    if Hero_Health > 90+Vitality*10
+    Hero_Health=90+Vitality*10;
+    end
+    r=Hero_Health;
 else
     r=Hero_Health;
 end
