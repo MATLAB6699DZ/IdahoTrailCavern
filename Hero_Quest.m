@@ -1,12 +1,9 @@
 clc
 clear
 %Music
-%mudeth - Antibirth- OST - 15 Machine in the Walls.mp3
-%mudeth - Anitbirth- OST - 05 Esc (Arcade).mp3
-%mudeth - Antibirth- OST - 20 Subterranean Homesick Malign (Caves).mp3
-%[a, fs] = audioread('mudeth - Antibirth- OST - 15 Machine in the Walls.mp3');
-%song1 = audioplayer(a, fs);
-%play(song1)
+[a, fs] = audioread('mudeth - Antibirth- OST - 28 The Hammer of Pompeii (Necropolis).mp3');
+song1 = audioplayer(a, fs);
+play(song1)
 
 warning('off','all'); % turns off all warning messages
 
@@ -14,11 +11,9 @@ load Adventure
 [Char] = Start;
 
 f = figure('Name','Map','MenuBar','none');
-Player = imread('Player.bmp');
 Ogre = imread('Ogre_Image.bmp');
 Tea = imread('tea.bmp');
 Serpent = imread('Serpent_Image.bmp');
-Dragon = imread('Genivious.bmp');
 Bandit = imread('Bandit_Image.bmp');
 Dragon9_9 = imread('dragon_upleft.bmp');
 Dragon9_10 = imread('dragon_upright.bmp');
@@ -92,7 +87,6 @@ elseif World{posY,posX} == Ogre
     World{posY,posX} = Player;
 elseif World{posY,posX} == Door
     load Adventure
-    Player = imread('Player.bmp');
     for k=1:3
         World{randi(9)+1,randi(9)+1}= Bandit;
         World{randi(9)+1,randi(9)+1}= Ogre;
@@ -111,9 +105,7 @@ elseif World{posY,posX} == Serpent
     World{posY,posX} = Player;
 elseif World{posY,posX} == Door1
     load Adventure
-    Player = imread('Player.bmp');
-  %  Dragon = imread('Genivious.bmp');
-    for k=1:4
+      for k=1:4
         World{randi(9)+1,randi(9)+1}= Bandit;
         World{randi(9)+1,randi(9)+1}= Ogre;            
         if k == 4
@@ -126,8 +118,18 @@ elseif World{posY,posX} == Door1
     World{10,9}=Dragon10_9;
     World{10,10}=Dragon10_10;
 elseif (World{posY,posX}== Dragon9_9) | (World{posY,posX}== Dragon10_9) | (World{posY,posX}== Dragon9_10)
+    pause(song1)
+    [A, Fs] = audioread('mudeth - Antibirth- OST - 08 Gloria Filio (Moms Heart).mp3');
+    song2 = audioplayer(A, Fs);
+    play(song2)
     [r] = DragonBattle(Char,Hero_Health,Shield_Metal);
     Hero_Health=r;
+    if Hero_Health > 0
+        fprintf('You saved THE Bell Laboratories\n');
+        close All
+        break
+        break
+    end
 end
 if (Hero_Health > -1000) < (Hero_Health <= 0)
     fprintf('Game Over!\n')
@@ -233,6 +235,7 @@ imshow([World{1,:};World{2,:};World{3,:};World{4,:};World{5,:};World{6,:};World{
     EXP=EXP;
     end
 end
-% pause(song1)
+pause(song1);
+pause(song2);
 clear
 
